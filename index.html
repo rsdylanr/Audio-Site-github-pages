@@ -1,958 +1,273 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0b0e14">
-<title>Browser Audio Lab</title>
-<style>
-:root{color-scheme:dark;--bg:#090c12;--panel:#10151f;--panel2:#151c29;--line:#273143;--text:#e8edf7;--muted:#929db0;--cyan:#61e6dc;--purple:#a99bff;--red:#ff7185;--green:#77e6a1;--radius:14px}
-*{box-sizing:border-box}
-body{margin:0;background:radial-gradient(ellipse at 70% -15%,#20284b 0,transparent 48%),var(--bg);color:var(--text);font:14px/1.55 system-ui,-apple-system,Segoe UI,sans-serif}
-button,input,select,textarea{font:inherit}
-button,select,input,textarea{color:var(--text)}
-button{cursor:pointer;border:1px solid var(--line);background:var(--panel2);border-radius:9px;padding:9px 12px;transition:border-color .15s,background .15s}
-button:hover:not(:disabled){border-color:var(--cyan);background:#202b3a}
-button:disabled{opacity:.38;cursor:not-allowed}
-button.primary{background:var(--cyan);color:#081514;border-color:var(--cyan);font-weight:750}
-button.danger{border-color:#723744;color:#ff9ba8}
-button.small{padding:5px 8px;font-size:12px}
-input:not([type=checkbox]):not([type=range]),select,textarea{width:100%;background:#0b1019;border:1px solid var(--line);border-radius:8px;padding:9px;outline:none}
-input:focus,select:focus,textarea:focus{border-color:var(--cyan)}
-input[type=range]{width:100%;accent-color:var(--cyan)}
-input[type=checkbox]{accent-color:var(--cyan)}
-textarea{resize:vertical;min-height:100px}
-a{color:var(--cyan)}
-header{border-bottom:1px solid var(--line);background:#090c12e8;position:sticky;top:0;z-index:10;backdrop-filter:blur(18px)}
-.header-inner{max-width:1500px;margin:auto;padding:13px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px}
-.brand{display:flex;align-items:center;gap:12px}
-.logo{height:40px;width:40px;display:grid;place-items:center;border:1px solid #42615f;border-radius:12px;color:var(--cyan);background:#102322;font-size:22px}
-.brand h1{font-size:16px;line-height:1.3;margin:0;letter-spacing:-.3px}
-.brand p{font-size:11px;color:var(--muted);margin:3px 0 0}
-.status{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)}
-.dot{height:8px;width:8px;border-radius:50%;background:#758094;display:inline-block;flex-shrink:0}
-.dot.good{background:var(--green)}.dot.live{background:var(--cyan);box-shadow:0 0 12px #61e6dc88}.dot.bad{background:var(--red)}
-main{max-width:1500px;margin:auto;padding:24px 22px 60px}
-.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin:5px 0 24px}
-.hero h2{font-size:clamp(25px,4vw,38px);letter-spacing:-1.3px;line-height:1.1;margin:0 0 10px}
-.hero p{color:var(--muted);max-width:700px;margin:0}
-.eyebrow{color:var(--cyan);font-size:11px;font-weight:800;letter-spacing:1.7px;text-transform:uppercase;margin-bottom:8px}
-.pill{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border:1px solid var(--line);border-radius:20px;color:var(--muted);font-size:11px;white-space:nowrap}
-.layout{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(320px,1fr);gap:16px;align-items:start}
-.column{display:grid;gap:16px;min-width:0}
-.panel{border:1px solid var(--line);background:linear-gradient(145deg,#131a26ee,#0f141dee);border-radius:var(--radius);overflow:hidden;min-width:0}
-.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 17px;border-bottom:1px solid var(--line)}
-.panel-head h3{font-size:14px;margin:0;font-weight:750}
-.panel-head p{font-size:11px;color:var(--muted);margin:3px 0 0}
-.panel-body{padding:16px}
-.section-icon{color:var(--cyan);margin-right:7px}
-.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.field{display:grid;gap:6px;min-width:0}
-.field label,.label{font-size:11px;color:var(--muted);font-weight:650}
-.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
-.stack{display:grid;gap:14px}
-.muted{color:var(--muted)}
-.smalltext{font-size:11px;color:var(--muted)}
-.stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:14px}
-.stat{padding:10px;border:1px solid var(--line);border-radius:10px;background:#0b1019;min-width:0}
-.stat .value{font-size:20px;font-weight:750;letter-spacing:-.5px;overflow-wrap:anywhere}
-.stat .caption{font-size:10px;color:var(--muted)}
-.visual{height:150px;background:#080c13;border:1px solid var(--line);border-radius:10px;overflow:hidden;position:relative}
-.visual canvas{width:100%;height:100%;display:block}
-.visual-label{position:absolute;top:9px;left:11px;font-size:10px;letter-spacing:.8px;color:#93a3b8;text-transform:uppercase;pointer-events:none}
-.meter{height:6px;border-radius:6px;background:#202838;overflow:hidden;margin-top:7px}
-.meter>div{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),#b8fcae);transition:width .08s}
-.notice{border:1px solid #34435a;border-radius:9px;padding:10px 12px;background:#131b29;color:#b9c7dc;font-size:12px}
-.notice.warn{border-color:#705a33;background:#211b10;color:#e6ca8e}
-.notice.error{border-color:#703945;background:#24131a;color:#ffb2bc}
-.notice.success{border-color:#315e4a;background:#10221b;color:#a9edc1}
-.kv{display:grid;grid-template-columns:minmax(100px,.8fr) minmax(0,1.2fr);gap:8px;padding:8px 0;border-bottom:1px solid #202938;font-size:12px}
-.kv:last-child{border-bottom:0}
-.kv span:first-child{color:var(--muted)}
-.kv span:last-child{overflow-wrap:anywhere;text-align:right}
-.log{height:190px;overflow:auto;background:#080c13;border:1px solid var(--line);border-radius:9px;padding:10px;font:11px/1.7 ui-monospace,SFMono-Regular,Consolas,monospace}
-.log-entry{display:grid;grid-template-columns:65px 60px minmax(0,1fr);gap:8px;border-bottom:1px solid #17202c;padding:3px 0;overflow-wrap:anywhere}
-.log-entry .time{color:#77879d}.log-entry .kind{color:var(--cyan)}.log-entry.error .kind{color:var(--red)}
-.transcript{min-height:170px;max-height:370px;overflow:auto;background:#080c13;border:1px solid var(--line);border-radius:9px;padding:13px;white-space:pre-wrap;overflow-wrap:anywhere}
-.transcript:empty:before{content:"Recognized text will appear here.";color:#647187}
-.transcript .interim{color:#8292a9}
-.badge{font-size:10px;border:1px solid var(--line);padding:3px 6px;border-radius:6px;color:var(--muted)}
-.tabs{display:flex;gap:6px;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid var(--line)}
-.tab{font-size:12px;padding:7px 11px}
-.tab.active{border-color:#3b716e;color:var(--cyan);background:#102322}
-.subsection{display:grid;gap:10px}
-hr{border:0;border-top:1px solid var(--line);margin:3px 0}
-footer{margin-top:24px;text-align:center;color:var(--muted);font-size:11px}
-[hidden]{display:none!important}
-@media(max-width:1000px){.layout{grid-template-columns:1fr}.hero{align-items:flex-start;flex-direction:column}.header-inner{padding:12px 15px}main{padding:18px 14px 40px}}
-@media(max-width:520px){.fields{grid-template-columns:1fr}.stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.brand p{display:none}.header-inner{gap:8px}.status{font-size:10px}.log-entry{grid-template-columns:48px 48px minmax(0,1fr)}}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1020">
+  <meta name="description" content="A browser-native audio, microphone, recording, and speech laboratory.">
+  <title>Audio Lab</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./js/app.js"></script>
 </head>
 <body>
-<header>
-  <div class="header-inner">
-    <div class="brand">
-      <div class="logo" aria-hidden="true">∿</div>
-      <div><h1>Browser Audio Lab</h1><p>Native audio · speech · signal diagnostics</p></div>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="Audio Lab home">
+      <span class="brand-mark">A</span>
+      <span>Audio Lab</span>
+    </a>
+    <div class="top-status">
+      <span id="systemDot" class="dot"></span>
+      <span id="systemStatus">Initializing…</span>
     </div>
-    <div class="status"><span class="dot" id="statusDot"></span><span id="globalStatus">Engine idle</span></div>
-  </div>
-</header>
+  </header>
 
-<main>
-  <section class="hero">
-    <div>
-      <div class="eyebrow">Browser engineering workbench / 001</div>
-      <h2>Understand every signal.</h2>
-      <p>Inspect browser audio capabilities, capture microphone streams, visualize signals, record audio, experiment with speech recognition, and inspect the underlying events.</p>
-    </div>
-    <span class="pill"><span class="dot good"></span> Local-first · No API keys</span>
-  </section>
+  <main class="shell">
+    <section class="hero">
+      <p class="eyebrow">BROWSER-NATIVE EXPERIMENTS</p>
+      <h1>Your audio, <span class="gradient-text">explored.</span></h1>
+      <p class="hero-copy">
+        Inspect live sound, record audio, explore your microphone,
+        and experiment with speech—all locally in your browser
+        except where browser speech services may use remote processing.
+      </p>
+    </section>
 
-  <div class="layout">
-    <div class="column">
-      <section class="panel">
-        <div class="panel-head">
-          <div><h3><span class="section-icon">01 /</span>Audio engine</h3><p>Live signal analysis and optional monitoring</p></div>
-          <span class="badge" id="audioState">INACTIVE</span>
+    <div id="fatalError" class="notice error hidden" role="alert"></div>
+    <div id="notice" class="notice hidden" role="status"></div>
+
+    <section class="panel controls-panel">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">01 / INPUT</p>
+          <h2>Audio source</h2>
         </div>
-        <div class="panel-body stack">
-          <div class="stat-grid">
-            <div class="stat"><div class="value" id="sampleRate">—</div><div class="caption">Sample rate (Hz)</div></div>
-            <div class="stat"><div class="value" id="fftSize">—</div><div class="caption">FFT size</div></div>
-            <div class="stat"><div class="value" id="rmsValue">—</div><div class="caption">RMS amplitude</div></div>
-            <div class="stat"><div class="value" id="peakValue">—</div><div class="caption">Peak amplitude</div></div>
-          </div>
-          <div class="visual"><canvas id="waveCanvas" aria-label="Live audio waveform"></canvas><span class="visual-label">Time domain / waveform</span></div>
-          <div class="visual"><canvas id="freqCanvas" aria-label="Live audio frequency spectrum"></canvas><span class="visual-label">Frequency domain / spectrum</span></div>
-          <div class="fields">
-            <div class="field"><label for="fftSelect">FFT analysis resolution</label><select id="fftSelect"><option>256</option><option>512</option><option>1024</option><option selected>2048</option><option>4096</option><option>8192</option><option>16384</option></select></div>
-            <div class="field"><label for="smooth">Spectrum smoothing: <span id="smoothLabel">0.75</span></label><input id="smooth" type="range" min="0" max="0.95" step="0.05" value="0.75"></div>
-          </div>
-          <div class="field"><label for="gain">Monitor gain: <span id="gainLabel">0.50×</span></label><input id="gain" type="range" min="0" max="1" step="0.05" value="0.5"></div>
-          <div class="controls">
-            <button class="primary" id="startMic">Start microphone</button>
-            <button id="stopMic" disabled>Stop microphone</button>
-            <button id="monitorBtn" disabled>Enable monitoring</button>
-          </div>
-          <div class="notice warn" id="monitorNotice">Monitoring is disabled by default. Headphones are strongly recommended before enabling it to avoid acoustic feedback.</div>
-          <div id="audioNotice" class="notice">Microphone access requires permission and a secure context, such as HTTPS or localhost.</div>
+        <span id="micBadge" class="badge">Microphone stopped</span>
+      </div>
+
+      <div class="control-grid">
+        <label class="field">
+          <span>Input device</span>
+          <select id="deviceSelect">
+            <option value="">Default microphone</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Requested sample rate</span>
+          <select id="sampleRate">
+            <option value="default">Browser default</option>
+            <option value="44100">44.1 kHz</option>
+            <option value="48000">48 kHz</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="button-row">
+        <button id="startMic" class="button primary">Start microphone</button>
+        <button id="stopMic" class="button" disabled>Stop microphone</button>
+        <button id="refreshDevices" class="button">Refresh devices</button>
+      </div>
+
+      <p class="help">
+        Microphone access requires permission and normally works on HTTPS
+        or localhost. Device names may be hidden until permission is granted.
+      </p>
+
+      <div class="stats-grid">
+        <div class="stat">
+          <span class="stat-label">Input level</span>
+          <strong id="levelValue">— dBFS</strong>
+          <div class="meter"><div id="levelBar" class="meter-fill"></div></div>
         </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-head"><div><h3><span class="section-icon">02 /</span>Media stream inspector</h3><p>Tracks, devices, settings, capabilities and lifecycle events</p></div><button class="small" id="refreshDevices">Refresh</button></div>
-        <div class="panel-body stack">
-          <div class="field"><label for="deviceSelect">Input device</label><select id="deviceSelect"><option value="">Default device</option></select></div>
-          <div class="controls"><button id="enumerateBtn">Enumerate devices</button><span class="smalltext" id="deviceCount">Not enumerated</span></div>
-          <div id="deviceList" class="stack smalltext">Device information appears here after enumeration.</div>
-          <hr>
-          <div><div class="label">Active stream / track details</div><div id="trackDetails" class="smalltext" style="margin-top:7px">No active microphone track.</div></div>
-          <div><div class="label">Track lifecycle events</div><div id="trackEvents" class="log" style="height:125px;margin-top:7px"></div></div>
+        <div class="stat">
+          <span class="stat-label">Actual context rate</span>
+          <strong id="actualRate">—</strong>
         </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-head"><div><h3><span class="section-icon">03 /</span>Audio recording</h3><p>MediaRecorder · browser-supported encodings</p></div><span class="badge" id="recordState">READY</span></div>
-        <div class="panel-body stack">
-          <div class="fields">
-            <div class="field"><label for="mimeSelect">Recording format</label><select id="mimeSelect"></select></div>
-            <div class="field"><label>Elapsed time</label><div class="stat"><div class="value" id="recordTime">00:00.0</div><div class="caption">Recording duration</div></div></div>
-          </div>
-          <div class="controls">
-            <button class="primary" id="recordBtn" disabled>Start recording</button>
-            <button id="pauseRecordBtn" disabled>Pause</button>
-            <button id="stopRecordBtn" disabled>Stop</button>
-            <button id="downloadRecordBtn" disabled>Download recording</button>
-          </div>
-          <audio id="recordPlayback" controls hidden style="width:100%"></audio>
-          <div class="smalltext" id="recordInfo">Start the microphone to enable recording.</div>
+        <div class="stat">
+          <span class="stat-label">Input channels</span>
+          <strong id="channels">—</strong>
         </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-head"><div><h3><span class="section-icon">04 /</span>Diagnostics & event journal</h3><p>Inspect runtime behavior instead of guessing</p></div><div class="controls"><button class="small" id="exportLog">Export log</button><button class="small" id="clearLog">Clear</button></div></div>
-        <div class="panel-body stack">
-          <div id="diagnostics" class="stack"></div>
-          <div class="log" id="eventLog" aria-live="polite"></div>
+        <div class="stat">
+          <span class="stat-label">Audio context</span>
+          <strong id="contextState">Not started</strong>
         </div>
-      </section>
-    </div>
+      </div>
+    </section>
 
-    <div class="column">
-      <section class="panel">
-        <div class="panel-head"><div><h3><span class="section-icon">05 /</span>Speech recognition</h3><p>Speech-to-text · detailed result events</p></div><span class="badge" id="recognitionState">IDLE</span></div>
-        <div class="panel-body stack">
-          <div class="notice warn" id="recognitionNotice">Recognition support varies by browser. Some implementations use remote services; offline operation is not guaranteed.</div>
-          <div class="fields">
-            <div class="field"><label for="speechLang">Recognition language</label><select id="speechLang"><option value="en-US">English (United States)</option><option value="en-GB">English (United Kingdom)</option><option value="es-ES">Spanish</option><option value="fr-FR">French</option><option value="de-DE">German</option><option value="ja-JP">Japanese</option><option value="zh-CN">Chinese (Mandarin)</option><option value="pt-BR">Portuguese (Brazil)</option><option value="it-IT">Italian</option><option value="hi-IN">Hindi</option></select></div>
-            <div class="field"><label for="maxAlternatives">Maximum alternatives</label><select id="maxAlternatives"><option>1</option><option>2</option><option>3</option><option>5</option><option>10</option></select></div>
+    <section class="visual-grid">
+      <article class="panel visual-panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">02 / TIME DOMAIN</p>
+            <h2>Waveform</h2>
           </div>
-          <div class="fields">
-            <label class="smalltext"><input id="continuous" type="checkbox" checked> Continuous recognition</label>
-            <label class="smalltext"><input id="interim" type="checkbox" checked> Interim results</label>
-          </div>
-          <div class="controls">
-            <button class="primary" id="startRecognition">Start recognition</button>
-            <button id="stopRecognition" disabled>Stop gracefully</button>
-            <button id="abortRecognition" disabled>Abort</button>
-          </div>
-          <div class="stat-grid">
-            <div class="stat"><div class="value" id="finalCount">0</div><div class="caption">Final results</div></div>
-            <div class="stat"><div class="value" id="wordCount">0</div><div class="caption">Words</div></div>
-            <div class="stat"><div class="value" id="durationValue">—</div><div class="caption">Elapsed</div></div>
-            <div class="stat"><div class="value" id="confidenceValue">—</div><div class="caption">Latest confidence</div></div>
-          </div>
-          <div class="field"><label>Live transcript</label><div class="transcript" id="transcript" aria-live="polite"></div></div>
-          <div class="controls"><button id="copyTranscript">Copy transcript</button><button id="downloadTranscript">Download text</button><button class="danger" id="clearTranscript">Clear transcript</button></div>
-          <div class="field"><label>Recognition alternatives and confidence</label><div id="alternatives" class="stack smalltext">No results yet.</div></div>
-          <div class="field"><label>Recognition-specific events</label><div class="log" id="speechEvents" style="height:180px"></div></div>
+          <span class="badge">Live</span>
         </div>
-      </section>
+        <canvas id="waveCanvas" height="210" aria-label="Live audio waveform"></canvas>
+        <div class="visual-footer">
+          <span>Amplitude over time</span>
+          <span id="waveState">Waiting for input</span>
+        </div>
+      </article>
 
-      <section class="panel">
-        <div class="panel-head"><div><h3><span class="section-icon">06 /</span>Speech synthesis</h3><p>Text-to-speech · voices · utterance lifecycle</p></div><span class="badge" id="synthesisState">IDLE</span></div>
-        <div class="panel-body stack">
-          <div class="field"><label for="synthText">Text to speak</label><textarea id="synthText" maxlength="20000" placeholder="Enter text to synthesize..."></textarea></div>
-          <div class="field"><label for="voiceSelect">Available voices</label><select id="voiceSelect"><option value="">Default voice</option></select></div>
-          <div class="fields">
-            <div class="field"><label for="synthLang">Language override</label><input id="synthLang" value="en-US" maxlength="35"></div>
-            <div class="field"><label for="synthRate">Rate: <span id="rateLabel">1.00×</span></label><input id="synthRate" type="range" min="0.1" max="3" step="0.1" value="1"></div>
-            <div class="field"><label for="synthPitch">Pitch: <span id="pitchLabel">1.00</span></label><input id="synthPitch" type="range" min="0" max="2" step="0.1" value="1"></div>
-            <div class="field"><label for="synthVolume">Volume: <span id="volumeLabel">100%</span></label><input id="synthVolume" type="range" min="0" max="1" step="0.05" value="1"></div>
+      <article class="panel visual-panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">03 / FREQUENCY DOMAIN</p>
+            <h2>Spectrum</h2>
           </div>
-          <div class="controls"><button class="primary" id="speakBtn">Speak</button><button id="pauseSpeechBtn">Pause</button><button id="resumeSpeechBtn">Resume</button><button id="cancelSpeechBtn">Cancel</button></div>
-          <div class="controls"><button class="small" id="refreshVoices">Refresh voices</button><span id="voiceCount" class="smalltext">Loading voice list…</span></div>
-          <div id="synthNotice" class="notice">Voices depend on the browser and operating system. Some voices may use platform services.</div>
-          <div class="field"><label>Synthesis events</label><div class="log" id="synthEvents" style="height:150px"></div></div>
+          <span class="badge">FFT</span>
         </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-head"><div><h3><span class="section-icon">07 /</span>Platform capability matrix</h3><p>Detected APIs, not a guarantee of successful operation</p></div><button class="small" id="runDiagnostics">Recheck</button></div>
-        <div class="panel-body stack">
-          <div id="capabilityList" class="stack"></div>
-          <div class="notice">A present API may still require permission, a secure context, hardware, or platform support. This matrix reports feature detection rather than claiming every operation works.</div>
+        <canvas id="spectrumCanvas" height="210" aria-label="Live frequency spectrum"></canvas>
+        <div class="visual-footer">
+          <span>Low → high frequency</span>
+          <span id="fftState">Waiting for input</span>
         </div>
-      </section>
+      </article>
+    </section>
 
-      <section class="panel">
-        <div class="panel-head"><div><h3><span class="section-icon">08 /</span>Privacy & runtime</h3></div><span class="badge">CLIENT-SIDE</span></div>
-        <div class="panel-body stack">
-          <div class="kv"><span>Application storage</span><span>None by default</span></div>
-          <div class="kv"><span>Audio upload by app</span><span>No</span></div>
-          <div class="kv"><span>Microphone</span><span>Permission required</span></div>
-          <div class="kv"><span>Recognition processing</span><span>Browser-dependent</span></div>
-          <div class="kv"><span>Recording persistence</span><span>Memory until cleared or page closed</span></div>
-          <button class="danger" id="releaseAll">Stop all sessions & release media</button>
-          <div class="smalltext">Stopping a session releases this application's active media tracks and audio context. Browser-managed recognition and synthesis may have their own lifecycle. Downloaded files are not deleted by this control.</div>
+    <section class="panel">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">04 / CAPTURE</p>
+          <h2>Recorder</h2>
         </div>
-      </section>
-    </div>
-  </div>
-  <footer>Browser Audio Lab · Built with native Web Platform APIs · No frameworks or application backend</footer>
-</main>
+        <span id="recordBadge" class="badge">Idle</span>
+      </div>
 
-<script>
-"use strict";
+      <p class="help">
+        Recordings stay in this page's memory until you download them or close
+        the page. Recording uses the browser's supported MediaRecorder format.
+      </p>
 
-const $ = id => document.getElementById(id);
-const has = (obj, key) => key in obj;
-const nowTime = () => new Date().toLocaleTimeString([], {hour12:false});
-const fmt = n => Number.isFinite(n) ? n.toFixed(4) : "—";
+      <div class="button-row">
+        <button id="startRecord" class="button primary" disabled>Start recording</button>
+        <button id="stopRecord" class="button danger" disabled>Stop recording</button>
+        <button id="downloadRecord" class="button" disabled>Download recording</button>
+      </div>
 
-const state = {
-  stream:null, context:null, source:null, gain:null, analyser:null,
-  animation:0, monitoring:false, recorder:null, chunks:[], recordingBlob:null,
-  recordingUrl:null, recordStarted:0, recordElapsed:0, recordTimer:0,
-  recognition:null, recognizing:false, recognitionStarted:0, finalTranscript:"",
-  interimTranscript:"", finalResults:0, lastConfidence:null, recognitionElapsed:0,
-  utterance:null, synthActive:false, trackHandlers:[], deviceChangeHandler:null,
-  logEntries:[], speechLogEntries:[], synthLogEntries:[], trackLogEntries:[],
-  voices:[], destroyed:false
-};
+      <div class="record-info">
+        <div><span class="stat-label">Duration</span><strong id="recordDuration">00:00</strong></div>
+        <div><span class="stat-label">Recorded size</span><strong id="recordSize">0 KB</strong></div>
+        <div><span class="stat-label">Format</span><strong id="recordFormat">Not selected</strong></div>
+      </div>
 
-function log(target, type, message, isError=false) {
-  const entry = {time:nowTime(),type:String(type),message:String(message)};
-  const list = target === "speechEvents" ? state.speechLogEntries :
-               target === "synthEvents" ? state.synthLogEntries :
-               target === "trackEvents" ? state.trackLogEntries : state.logEntries;
-  list.push(entry);
-  if(list.length > 1000) list.shift();
-  const el = $(target);
-  if(!el) return;
-  const row = document.createElement("div");
-  row.className = "log-entry" + (isError ? " error" : "");
-  for(const value of [entry.time,entry.type,entry.message]){
-    const span = document.createElement("span");
-    span.textContent = value;
-    if(value === entry.time) span.className = "time";
-    else if(value === entry.type) span.className = "kind";
-    row.append(span);
-  }
-  el.append(row);
-  while(el.children.length > 180) el.firstElementChild.remove();
-  el.scrollTop = el.scrollHeight;
-}
+      <audio id="playback" controls preload="metadata"></audio>
+    </section>
 
-function setStatus(text, mode="") {
-  $("globalStatus").textContent = text;
-  $("statusDot").className = "dot " + mode;
-}
-function notice(id, text, kind="") {
-  const el = $(id);
-  el.textContent = text;
-  el.className = "notice" + (kind ? " " + kind : "");
-}
-function errText(error) {
-  return (error && (error.name || error.message))
-    ? `${error.name || "Error"}: ${error.message || "Operation failed"}` : String(error);
-}
-function safe(fn) {
-  try { const result=fn(); if(result && typeof result.catch==="function") result.catch(e=>log("eventLog","ERROR",errText(e),true)); return result; }
-  catch(e){ log("eventLog","ERROR",errText(e),true); return null; }
-}
-function downloadBlob(blob, name) {
-  const url = URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url; a.download=name;
-  document.body.append(a); a.click(); a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),30000);
-}
-function downloadText(text,name,type="text/plain;charset=utf-8") {
-  downloadBlob(new Blob([text],{type}),name);
-}
-function fmtDuration(ms) {
-  const n=Math.max(0,ms);
-  const mins=Math.floor(n/60000);
-  const secs=Math.floor(n%60000/1000);
-  const tenths=Math.floor(n%1000/100);
-  return `${String(mins).padStart(2,"0")}:${String(secs).padStart(2,"0")}.${tenths}`;
-}
-function kv(container,key,value) {
-  const row=document.createElement("div"); row.className="kv";
-  const a=document.createElement("span"),b=document.createElement("span");
-  a.textContent=key;b.textContent=value;
-  row.append(a,b);container.append(row);
-}
-function featureRow(name,available,detail="") {
-  const row=document.createElement("div");row.className="kv";
-  const left=document.createElement("span");left.textContent=name;
-  const right=document.createElement("span");
-  const dot=document.createElement("span");dot.className="dot "+(available?"good":"bad");
-  dot.style.marginRight="7px";
-  right.append(dot,document.createTextNode((available?"Available":"Not detected")+(detail?" · "+detail:"")));
-  row.append(left,right);return row;
-}
+    <section class="visual-grid">
+      <article class="panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">05 / SPEECH INPUT</p>
+            <h2>Speech recognition</h2>
+          </div>
+          <span id="recognitionBadge" class="badge">Checking support</span>
+        </div>
 
-/* Capability detection */
-function runDiagnostics() {
-  const secure = window.isSecureContext;
-  const audio = typeof window.AudioContext==="function" || typeof window.webkitAudioContext==="function";
-  const rec = typeof window.SpeechRecognition==="function" || typeof window.webkitSpeechRecognition==="function";
-  const syn = "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
-  const media = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
-  const recorder = typeof window.MediaRecorder==="function";
-  const caps = [
-    ["Secure context",!!secure,secure?"secure":"insecure"],
-    ["getUserMedia",media,"microphone capture"],
-    ["MediaDevices enumeration",!!(navigator.mediaDevices?.enumerateDevices),"device listing"],
-    ["MediaStreamTrack",typeof window.MediaStreamTrack==="function","track inspection"],
-    ["AudioContext",audio,"Web Audio"],
-    ["AnalyserNode",audio,"signal analysis"],
-    ["MediaRecorder",recorder,"recording"],
-    ["SpeechRecognition",rec,"speech to text"],
-    ["SpeechSynthesis",syn,"text to speech"],
-    ["AudioWorklet",typeof window.AudioWorkletNode==="function","custom audio processing"],
-    ["Web Workers",typeof window.Worker==="function","background computation"],
-    ["WebAssembly",typeof window.WebAssembly==="object","compiled modules"],
-    ["WebGL",!!document.createElement("canvas").getContext("webgl"),"GPU graphics"],
-    ["WebGPU",!!navigator.gpu,"GPU compute / graphics"],
-    ["IndexedDB",!!window.indexedDB,"local database API"],
-    ["File System Access",typeof window.showSaveFilePicker==="function","browser-dependent file access"],
-    ["Web Crypto",!!(crypto && crypto.subtle),"cryptographic operations"],
-    ["Permissions API",!!navigator.permissions?.query,"permission queries"]
-  ];
-  const el=$("capabilityList");el.replaceChildren();
-  for(const [name,available,detail] of caps) el.append(featureRow(name,available,detail));
-  const diag=$("diagnostics");diag.replaceChildren();
-  kv(diag,"Browser",navigator.userAgent);
-  kv(diag,"Platform",navigator.platform||"Not exposed");
-  kv(diag,"Language",navigator.language||"Unknown");
-  kv(diag,"Online status",navigator.onLine?"Online":"Offline");
-  kv(diag,"Secure context",String(secure));
-  kv(diag,"Page protocol",location.protocol);
-  kv(diag,"Visibility",document.visibilityState);
-  kv(diag,"Hardware concurrency",String(navigator.hardwareConcurrency||"Not exposed"));
-  kv(diag,"Device memory",navigator.deviceMemory ? `${navigator.deviceMemory} GB (approximate)` : "Not exposed");
-  kv(diag,"User agent",navigator.userAgent);
-  log("eventLog","DIAG","Capability matrix refreshed");
-}
-$("runDiagnostics").addEventListener("click",runDiagnostics);
+        <p class="help">
+          Speech recognition availability and processing behavior depend on
+          your browser. Some implementations send audio to a remote service.
+        </p>
 
-/* Web Audio engine */
-function audioConstructor() { return window.AudioContext || window.webkitAudioContext; }
-function setupCanvas(canvas) {
-  const rect=canvas.getBoundingClientRect();
-  const dpr=Math.min(window.devicePixelRatio||1,2);
-  const w=Math.max(1,Math.floor(rect.width*dpr)),h=Math.max(1,Math.floor(rect.height*dpr));
-  if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
-  const ctx=canvas.getContext("2d");
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-  return {ctx,w:rect.width,h:rect.height};
-}
-function drawGrid(ctx,w,h) {
-  ctx.strokeStyle="#1a2534";ctx.lineWidth=1;
-  for(let i=1;i<4;i++){ctx.beginPath();ctx.moveTo(0,h*i/4);ctx.lineTo(w,h*i/4);ctx.stroke();}
-  for(let i=1;i<8;i++){ctx.beginPath();ctx.moveTo(w*i/8,0);ctx.lineTo(w*i/8,h);ctx.stroke();}
-}
-function drawLoop() {
-  if(!state.analyser)return;
-  const analyser=state.analyser;
-  const data=new Uint8Array(analyser.fftSize);
-  const wave=setupCanvas($("waveCanvas"));
-  const freq=setupCanvas($("freqCanvas"));
-  const ctx=wave.ctx,w=wave.w,h=wave.h;
-  analyser.getByteTimeDomainData(data);
-  ctx.clearRect(0,0,w,h);drawGrid(ctx,w,h);
-  ctx.beginPath();ctx.strokeStyle="#61e6dc";ctx.lineWidth=1.7;
-  let sum=0,peak=0;
-  for(let i=0;i<data.length;i++){
-    const v=(data[i]-128)/128;
-    sum+=v*v;peak=Math.max(peak,Math.abs(v));
-    const x=i/(data.length-1)*w,y=h/2-v*h*.42;
-    if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
-  }
-  ctx.stroke();
-  const rms=Math.sqrt(sum/data.length);
-  $("rmsValue").textContent=fmt(rms);
-  $("peakValue").textContent=fmt(peak);
-  const c=freq.ctx,fw=freq.w,fh=freq.h;
-  const bins=new Uint8Array(analyser.frequencyBinCount);
-  analyser.getByteFrequencyData(bins);
-  c.clearRect(0,0,fw,fh);drawGrid(c,fw,fh);
-  const bars=Math.min(bins.length,Math.floor(fw/3));
-  const bw=fw/bars;
-  for(let i=0;i<bars;i++){
-    const index=Math.floor(i/bars*bins.length);
-    const value=bins[index]/255;
-    const bh=value*fh*.88;
-    c.fillStyle=`hsl(${170-value*100} ${65+value*20}% ${35+value*20}%)`;
-    c.fillRect(i*bw+1,fh-bh,Math.max(1,bw-2),bh);
-  }
-  state.animation=requestAnimationFrame(drawLoop);
-}
-function renderAudioSettings() {
-  if(!state.analyser)return;
-  const a=state.analyser;
-  a.fftSize=Number($("fftSelect").value);
-  a.smoothingTimeConstant=Number($("smooth").value);
-  $("fftSize").textContent=a.fftSize;
-  $("smoothLabel").textContent=Number($("smooth").value).toFixed(2);
-}
-$("fftSelect").addEventListener("change",renderAudioSettings);
-$("smooth").addEventListener("input",renderAudioSettings);
-$("gain").addEventListener("input",()=>{
-  $("gainLabel").textContent=Number($("gain").value).toFixed(2)+"×";
-  if(state.gain)state.gain.gain.setTargetAtTime(Number($("gain").value),state.context.currentTime,.02);
-});
-async function startMic() {
-  if(state.stream)return;
-  if(!navigator.mediaDevices?.getUserMedia){
-    notice("audioNotice","getUserMedia is unavailable. Use a supported browser on HTTPS or localhost.","error");return;
-  }
-  $("startMic").disabled=true;
-  try {
-    const deviceId=$("deviceSelect").value;
-    const constraints={audio:{
-      ...(deviceId?{deviceId:{exact:deviceId}}:{}),
-      echoCancellation:true,noiseSuppression:true,autoGainControl:true
-    },video:false};
-    const stream=await navigator.mediaDevices.getUserMedia(constraints);
-    if(state.destroyed){stream.getTracks().forEach(t=>t.stop());return;}
-    state.stream=stream;
-    const Ctx=audioConstructor();
-    if(Ctx){
-      state.context=new Ctx();
-      state.source=state.context.createMediaStreamSource(stream);
-      state.gain=state.context.createGain();
-      state.analyser=state.context.createAnalyser();
-      state.analyser.fftSize=Number($("fftSelect").value);
-      state.analyser.smoothingTimeConstant=Number($("smooth").value);
-      state.gain.gain.value=Number($("gain").value);
-      state.source.connect(state.gain);
-      state.gain.connect(state.analyser);
-      $("sampleRate").textContent=state.context.sampleRate;
-      $("fftSize").textContent=state.analyser.fftSize;
-      $("audioState").textContent="ACTIVE";
-      await state.context.resume();
-      cancelAnimationFrame(state.animation);drawLoop();
-    } else {
-      $("audioState").textContent="NO AUDIO API";
-    }
-    $("stopMic").disabled=false;$("monitorBtn").disabled=!state.context;
-    $("recordBtn").disabled=!window.MediaRecorder;
-    $("startMic").disabled=true;
-    setStatus("Microphone active","live");
-    notice("audioNotice","Microphone is active. Audio is analyzed locally by this page; no application-level upload is performed.","success");
-    bindTrackEvents(stream);
-    renderTrackDetails();
-    await enumerateDevices();
-    log("eventLog","MEDIA","Microphone stream acquired");
-  } catch(e) {
-    notice("audioNotice",errText(e),"error");
-    log("eventLog","ERROR","Microphone access failed: "+errText(e),true);
-    $("startMic").disabled=false;
-  }
-}
-function bindTrackEvents(stream) {
-  clearTrackHandlers();
-  for(const track of stream.getTracks()){
-    for(const name of ["ended","mute","unmute"]){
-      const handler=()=>{log("trackEvents","TRACK",`${track.kind} ${track.id.slice(0,8)}: ${name}`);renderTrackDetails();};
-      track.addEventListener(name,handler);
-      state.trackHandlers.push({track,name,handler});
-    }
-    log("trackEvents","TRACK",`Added ${track.kind} track ${track.id.slice(0,8)}`);
-  }
-  stream.addEventListener("addtrack",e=>log("trackEvents","STREAM","addtrack: "+e.track.kind));
-  stream.addEventListener("removetrack",e=>log("trackEvents","STREAM","removetrack: "+e.track.kind));
-}
-function clearTrackHandlers(){
-  for(const h of state.trackHandlers)h.track.removeEventListener(h.name,h.handler);
-  state.trackHandlers=[];
-}
-function renderTrackDetails() {
-  const el=$("trackDetails");el.replaceChildren();
-  if(!state.stream){el.textContent="No active microphone track.";return;}
-  for(const track of state.stream.getTracks()){
-    const box=document.createElement("div");box.style.marginBottom="12px";
-    const heading=document.createElement("strong");
-    heading.textContent=`${track.kind} · ${track.label||track.id}`;
-    box.append(heading);
-    const info=document.createElement("div");
-    info.className="smalltext";
-    info.textContent=`State: ${track.readyState} · Enabled: ${track.enabled} · Muted: ${track.muted} · ID: ${track.id}`;
-    box.append(info);
-    const settings=track.getSettings?.()||{};
-    for(const [k,v] of Object.entries(settings))kv(box,k,typeof v==="object"?JSON.stringify(v):String(v));
-    const caps=track.getCapabilities?.();
-    if(caps) {
-      const summary=document.createElement("div");summary.className="smalltext";
-      summary.textContent="Capabilities: "+JSON.stringify(caps);
-      summary.style.overflowWrap="anywhere";summary.style.marginTop="6px";box.append(summary);
-    }
-    el.append(box);
-  }
-}
-async function stopMic() {
-  if(state.recorder&&state.recorder.state!=="inactive") {
-    await new Promise(resolve=>{
-      const r=state.recorder;
-      r.addEventListener("stop",resolve,{once:true});
-      try{r.stop();}catch{resolve();}
-    });
-  }
-  if(state.monitoring)toggleMonitor(false);
-  cancelAnimationFrame(state.animation);
-  if(state.stream)state.stream.getTracks().forEach(t=>t.stop());
-  clearTrackHandlers();
-  state.stream=null;
-  if(state.source){try{state.source.disconnect();}catch{}}
-  if(state.gain){try{state.gain.disconnect();}catch{}}
-  if(state.analyser){try{state.analyser.disconnect();}catch{}}
-  if(state.context){try{await state.context.close();}catch{}}
-  state.source=state.gain=state.analyser=state.context=null;
-  $("sampleRate").textContent="—";$("fftSize").textContent="—";
-  $("rmsValue").textContent="—";$("peakValue").textContent="—";
-  for(const id of ["waveCanvas","freqCanvas"]){
-    const c=$(id).getContext("2d");c.clearRect(0,0,$(id).width,$(id).height);
-  }
-  $("audioState").textContent="INACTIVE";
-  $("stopMic").disabled=true;$("startMic").disabled=false;
-  $("monitorBtn").disabled=true;$("monitorBtn").textContent="Enable monitoring";
-  $("recordBtn").disabled=!window.MediaRecorder;
-  state.monitoring=false;
-  $("trackDetails").textContent="No active microphone track.";
-  setStatus("Engine idle");
-  notice("audioNotice","Microphone stopped and active media tracks released.");
-  log("eventLog","MEDIA","Microphone released");
-}
-function toggleMonitor(force) {
-  if(!state.context||!state.analyser)return;
-  const enable=typeof force==="boolean"?force:!state.monitoring;
-  try {
-    if(enable){
-      state.analyser.connect(state.context.destination);
-      state.monitoring=true;
-      $("monitorBtn").textContent="Disable monitoring";
-      notice("monitorNotice","Live microphone monitoring is enabled. Use headphones and low volume to reduce feedback risk.","warn");
-    }else{
-      state.analyser.disconnect(state.context.destination);
-      state.monitoring=false;
-      $("monitorBtn").textContent="Enable monitoring";
-      notice("monitorNotice","Monitoring disabled. Signal analysis continues.");
-    }
-    log("eventLog","AUDIO","Monitoring "+(enable?"enabled":"disabled"));
-  }catch(e){log("eventLog","ERROR",errText(e),true);}
-}
-$("startMic").addEventListener("click",startMic);
-$("stopMic").addEventListener("click",()=>safe(stopMic));
-$("monitorBtn").addEventListener("click",()=>toggleMonitor());
+        <div class="button-row">
+          <button id="startRecognition" class="button primary">Start recognition</button>
+          <button id="stopRecognition" class="button" disabled>Stop recognition</button>
+          <button id="clearTranscript" class="button">Clear text</button>
+          <button id="copyTranscript" class="button">Copy text</button>
+        </div>
 
-/* Device enumeration */
-async function enumerateDevices() {
-  const select=$("deviceSelect");
-  try {
-    if(!navigator.mediaDevices?.enumerateDevices)throw new Error("Device enumeration unavailable");
-    const devices=await navigator.mediaDevices.enumerateDevices();
-    const previous=select.value;
-    select.replaceChildren();
-    const def=document.createElement("option");def.value="";def.textContent="Default input device";select.append(def);
-    const inputs=devices.filter(d=>d.kind==="audioinput");
-    for(const d of inputs){
-      const option=document.createElement("option");
-      option.value=d.deviceId;option.textContent=d.label||`Audio input ${select.length}`;
-      select.append(option);
-    }
-    if(inputs.some(d=>d.deviceId===previous))select.value=previous;
-    $("deviceCount").textContent=`${inputs.length} audio inputs · ${devices.length} total devices`;
-    const list=$("deviceList");list.replaceChildren();
-    for(const d of devices){
-      const row=document.createElement("div");row.className="kv";
-      const left=document.createElement("span");left.textContent=d.kind;
-      const right=document.createElement("span");right.textContent=d.label||"Label unavailable until permission is granted";
-      row.append(left,right);list.append(row);
-    }
-    log("eventLog","DEVICES",`Enumerated ${devices.length} media devices`);
-  }catch(e){
-    $("deviceCount").textContent="Enumeration failed";
-    log("eventLog","ERROR",errText(e),true);
-  }
-}
-$("enumerateBtn").addEventListener("click",enumerateDevices);
-$("refreshDevices").addEventListener("click",enumerateDevices);
-if(navigator.mediaDevices?.addEventListener){
-  state.deviceChangeHandler=()=>{log("eventLog","DEVICES","devicechange");safe(enumerateDevices);};
-  navigator.mediaDevices.addEventListener("devicechange",state.deviceChangeHandler);
-}
+        <label class="field">
+          <span>Recognition language</span>
+          <select id="speechLanguage">
+            <option value="en-US">English (United States)</option>
+            <option value="en-GB">English (United Kingdom)</option>
+            <option value="es-ES">Spanish</option>
+            <option value="fr-FR">French</option>
+            <option value="de-DE">German</option>
+            <option value="it-IT">Italian</option>
+            <option value="pt-BR">Portuguese (Brazil)</option>
+            <option value="ja-JP">Japanese</option>
+          </select>
+        </label>
 
-/* Recording */
-function initMimeOptions() {
-  const select=$("mimeSelect");
-  const types=["audio/webm;codecs=opus","audio/webm","audio/ogg;codecs=opus","audio/mp4","audio/wav"];
-  select.replaceChildren();
-  let count=0;
-  if(window.MediaRecorder && typeof MediaRecorder.isTypeSupported==="function"){
-    for(const type of types){
-      if(MediaRecorder.isTypeSupported(type)){
-        const o=document.createElement("option");o.value=type;o.textContent=type;select.append(o);count++;
-      }
-    }
-  }
-  const auto=document.createElement("option");auto.value="";auto.textContent="Browser default";select.append(auto);
-  if(!count)select.value="";
-}
-function resetRecordingControls() {
-  $("recordBtn").disabled=!state.stream||!window.MediaRecorder;
-  $("pauseRecordBtn").disabled=true;$("stopRecordBtn").disabled=true;
-}
-function startRecording() {
-  if(!state.stream||!window.MediaRecorder)return;
-  try{
-    const type=$("mimeSelect").value;
-    const options=type?{mimeType:type}:{};
-    state.chunks=[];
-    const recorder=new MediaRecorder(state.stream,options);
-    state.recorder=recorder;
-    recorder.addEventListener("start",()=>{
-      state.recordStarted=performance.now();state.recordElapsed=0;
-      $("recordState").textContent="RECORDING";
-      $("recordBtn").disabled=true;$("pauseRecordBtn").disabled=false;$("stopRecordBtn").disabled=false;
-      $("recordInfo").textContent=`Recording using ${recorder.mimeType||"browser-selected format"}`;
-      state.recordTimer=setInterval(()=>{
-        const elapsed=state.recordElapsed+(recorder.state==="recording"?performance.now()-state.recordStarted:0);
-        $("recordTime").textContent=fmtDuration(elapsed);
-      },100);
-      log("eventLog","RECORD","Recording started: "+recorder.mimeType);
-    });
-    recorder.addEventListener("dataavailable",e=>{if(e.data&&e.data.size)state.chunks.push(e.data);});
-    recorder.addEventListener("pause",()=>{
-      state.recordElapsed+=performance.now()-state.recordStarted;
-      $("pauseRecordBtn").textContent="Resume";
-      $("recordState").textContent="PAUSED";
-      log("eventLog","RECORD","Recording paused");
-    });
-    recorder.addEventListener("resume",()=>{
-      state.recordStarted=performance.now();
-      $("pauseRecordBtn").textContent="Pause";
-      $("recordState").textContent="RECORDING";
-      log("eventLog","RECORD","Recording resumed");
-    });
-    recorder.addEventListener("error",e=>log("eventLog","ERROR","Recorder error: "+(e.error?.message||"unknown"),true));
-    recorder.addEventListener("stop",()=>{
-      clearInterval(state.recordTimer);
-      const blob=new Blob(state.chunks,{type:recorder.mimeType||"application/octet-stream"});
-      state.recordingBlob=blob;
-      $("recordInfo").textContent=`Recording complete · ${blob.size.toLocaleString()} bytes · ${blob.type||"unknown MIME type"}`;
-      $("recordState").textContent="COMPLETE";
-      $("downloadRecordBtn").disabled=!blob.size;
-      $("recordBtn").disabled=!state.stream;
-      $("pauseRecordBtn").disabled=true;$("stopRecordBtn").disabled=true;
-      $("recordPlayback").hidden=!blob.size;
-      if(state.recordingUrl)URL.revokeObjectURL(state.recordingUrl);
-      state.recordingUrl=URL.createObjectURL(blob);
-      $("recordPlayback").src=state.recordingUrl;
-      log("eventLog","RECORD",`Recording stopped, ${blob.size} bytes`);
-    });
-    recorder.start(500);
-  }catch(e){
-    $("recordInfo").textContent=errText(e);
-    log("eventLog","ERROR","Cannot start recorder: "+errText(e),true);
-  }
-}
-function stopRecording() {
-  if(state.recorder&&state.recorder.state!=="inactive")state.recorder.stop();
-}
-$("recordBtn").addEventListener("click",startRecording);
-$("pauseRecordBtn").addEventListener("click",()=>{
-  if(!state.recorder)return;
-  if(state.recorder.state==="recording")state.recorder.pause();
-  else if(state.recorder.state==="paused")state.recorder.resume();
-});
-$("stopRecordBtn").addEventListener("click",stopRecording);
-$("downloadRecordBtn").addEventListener("click",()=>{
-  if(state.recordingBlob)downloadBlob(state.recordingBlob,`audio-recording-${Date.now()}.${state.recordingBlob.type.includes("ogg")?"ogg":state.recordingBlob.type.includes("mp4")?"m4a":"webm"}`);
-});
-initMimeOptions();
+        <label class="field">
+          <span>Transcript</span>
+          <textarea id="transcript" rows="7" placeholder="Recognized speech will appear here. You can also edit this text."></textarea>
+        </label>
+        <p id="recognitionMessage" class="help" aria-live="polite">Speech recognition has not started.</p>
+      </article>
 
-/* Speech recognition */
-const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
-function updateTranscript() {
-  const el=$("transcript");
-  el.replaceChildren();
-  if(state.finalTranscript)el.append(document.createTextNode(state.finalTranscript));
-  if(state.interimTranscript){
-    const span=document.createElement("span");span.className="interim";
-    span.textContent=(state.finalTranscript?" ":"")+state.interimTranscript;
-    el.append(span);
-  }
-  $("finalCount").textContent=state.finalResults;
-  $("wordCount").textContent=(state.finalTranscript.trim().match(/\S+/g)||[]).length;
-}
-function updateRecognitionButtons() {
-  $("startRecognition").disabled=!Recognition||state.recognizing;
-  $("stopRecognition").disabled=!state.recognizing;
-  $("abortRecognition").disabled=!state.recognizing;
-}
-function startRecognition() {
-  if(!Recognition){notice("recognitionNotice","Speech recognition is unavailable in this browser. Try a browser with Web Speech recognition support.","error");return;}
-  if(state.recognizing)return;
-  const r=new Recognition();
-  state.recognition=r;
-  r.lang=$("speechLang").value;
-  r.continuous=$("continuous").checked;
-  r.interimResults=$("interim").checked;
-  r.maxAlternatives=Number($("maxAlternatives").value);
-  state.recognizing=true;state.recognitionStarted=performance.now();
-  $("recognitionState").textContent="STARTING";
-  updateRecognitionButtons();
-  const eventNames=["audiostart","audioend","end","error","nomatch","result","soundstart","soundend","speechstart","speechend","start"];
-  for(const name of eventNames)r.addEventListener(name,e=>{
-    log("speechEvents",name.toUpperCase(),name==="error"?(e.error||"unknown error"):name==="result"?`resultIndex=${e.resultIndex}`:"event");
-  });
-  r.addEventListener("start",()=>{
-    $("recognitionState").textContent="LISTENING";
-    notice("recognitionNotice","Recognition session started. The browser determines the underlying recognition service.","success");
-  });
-  r.addEventListener("result",e=>{
-    let interim="";
-    for(let i=e.resultIndex;i<e.results.length;i++){
-      const result=e.results[i];
-      const alt=result[0];
-      if(!alt)continue;
-      if(result.isFinal){
-        state.finalTranscript+=(state.finalTranscript?" ":"")+alt.transcript.trim();
-        state.finalResults++;
-        state.lastConfidence=typeof alt.confidence==="number"?alt.confidence:null;
-        $("confidenceValue").textContent=state.lastConfidence===null?"—":(state.lastConfidence*100).toFixed(1)+"%";
-        const box=document.createElement("div");
-        box.style.border="1px solid var(--line)";box.style.padding="8px";box.style.borderRadius="8px";
-        const title=document.createElement("strong");title.textContent=`Result ${state.finalResults}: `;
-        const text=document.createElement("span");text.textContent=alt.transcript;
-        box.append(title,text);
-        for(let j=0;j<result.length;j++){
-          const alternative=result[j];
-          const detail=document.createElement("div");detail.className="smalltext";
-          detail.textContent=`Alternative ${j+1}: ${alternative.transcript} · confidence ${Number.isFinite(alternative.confidence)?alternative.confidence.toFixed(4):"not supplied"}`;
-          box.append(detail);
-        }
-        $("alternatives").prepend(box);
-        while($("alternatives").children.length>30)$("alternatives").lastElementChild.remove();
-      }else interim+=alt.transcript;
-    }
-    state.interimTranscript=interim;
-    updateTranscript();
-  });
-  r.addEventListener("error",e=>{
-    const msg=`${e.error||"recognition error"}${e.message?": "+e.message:""}`;
-    notice("recognitionNotice",msg,"error");
-    log("speechEvents","ERROR",msg,true);
-  });
-  r.addEventListener("end",()=>{
-    state.recognizing=false;
-    state.recognitionElapsed=performance.now()-state.recognitionStarted;
-    $("durationValue").textContent=(state.recognitionElapsed/1000).toFixed(1)+"s";
-    $("recognitionState").textContent="IDLE";
-    state.interimTranscript="";
-    updateTranscript();updateRecognitionButtons();
-    log("speechEvents","STATE","Recognition session ended");
-  });
-  try{r.start();log("eventLog","SPEECH","Recognition requested");}
-  catch(e){
-    state.recognizing=false;
-    updateRecognitionButtons();
-    notice("recognitionNotice",errText(e),"error");
-    log("eventLog","ERROR",errText(e),true);
-  }
-}
-function stopRecognition(abort=false) {
-  if(!state.recognition||!state.recognizing)return;
-  try{abort?state.recognition.abort():state.recognition.stop();}
-  catch(e){log("speechEvents","ERROR",errText(e),true);}
-}
-$("startRecognition").addEventListener("click",startRecognition);
-$("stopRecognition").addEventListener("click",()=>stopRecognition(false));
-$("abortRecognition").addEventListener("click",()=>stopRecognition(true));
-$("clearTranscript").addEventListener("click",()=>{
-  state.finalTranscript="";state.interimTranscript="";state.finalResults=0;state.lastConfidence=null;
-  $("confidenceValue").textContent="—";$("alternatives").textContent="No results yet.";
-  updateTranscript();log("eventLog","SPEECH","Transcript cleared");
-});
-$("copyTranscript").addEventListener("click",async()=>{
-  try{await navigator.clipboard.writeText(state.finalTranscript);notice("recognitionNotice","Transcript copied to clipboard.","success");}
-  catch(e){notice("recognitionNotice","Clipboard unavailable. Select and copy the transcript manually.","warn");}
-});
-$("downloadTranscript").addEventListener("click",()=>downloadText(state.finalTranscript,"transcript.txt"));
+      <article class="panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">06 / SPEECH OUTPUT</p>
+            <h2>Text to speech</h2>
+          </div>
+          <span id="synthesisBadge" class="badge">Checking support</span>
+        </div>
 
-/* Speech synthesis */
-function refreshVoices() {
-  if(!("speechSynthesis" in window))return;
-  state.voices=speechSynthesis.getVoices();
-  const select=$("voiceSelect"),previous=select.value;
-  select.replaceChildren();
-  const def=document.createElement("option");def.value="";def.textContent="System default voice";select.append(def);
-  state.voices.forEach((v,i)=>{
-    const o=document.createElement("option");o.value=String(i);
-    o.textContent=`${v.name} (${v.lang})${v.default?" · default":""}${v.localService?" · local":" · remote/platform"}`;
-    select.append(o);
-  });
-  if(previous&&[...select.options].some(o=>o.value===previous))select.value=previous;
-  $("voiceCount").textContent=`${state.voices.length} voices detected`;
-  log("synthEvents","VOICES",`Loaded ${state.voices.length} voices`);
-}
-if("speechSynthesis" in window){
-  speechSynthesis.addEventListener?.("voiceschanged",refreshVoices);
-  refreshVoices();
-  setTimeout(refreshVoices,500);
-}else{
-  $("voiceCount").textContent="Speech synthesis unavailable";
-  $("speakBtn").disabled=true;
-}
-$("refreshVoices").addEventListener("click",refreshVoices);
-$("synthRate").addEventListener("input",()=> $("rateLabel").textContent=Number($("synthRate").value).toFixed(2)+"×");
-$("synthPitch").addEventListener("input",()=> $("pitchLabel").textContent=Number($("synthPitch").value).toFixed(2));
-$("synthVolume").addEventListener("input",()=> $("volumeLabel").textContent=Math.round(Number($("synthVolume").value)*100)+"%");
-$("speakBtn").addEventListener("click",()=>{
-  if(!("speechSynthesis" in window)||!window.SpeechSynthesisUtterance)return;
-  const text=$("synthText").value;
-  if(!text.trim()){notice("synthNotice","Enter some text first.","warn");return;}
-  speechSynthesis.cancel();
-  const utterance=new SpeechSynthesisUtterance(text);
-  utterance.lang=$("synthLang").value.trim()||"en-US";
-  utterance.rate=Number($("synthRate").value);
-  utterance.pitch=Number($("synthPitch").value);
-  utterance.volume=Number($("synthVolume").value);
-  const index=$("voiceSelect").value;
-  if(index!==""&&state.voices[Number(index)])utterance.voice=state.voices[Number(index)];
-  state.utterance=utterance;state.synthActive=true;
-  for(const name of ["start","end","error","pause","resume","boundary","mark"]){
-    utterance.addEventListener(name,e=>{
-      log("synthEvents",name.toUpperCase(),name==="boundary"?`charIndex=${e.charIndex}, charLength=${e.charLength}, name=${e.name||""}`:name==="error"?(e.error||"error"):name);
-      if(name==="start")$("synthesisState").textContent="SPEAKING";
-      if(name==="end"||name==="error"){$("synthesisState").textContent="IDLE";state.synthActive=false;}
-      if(name==="pause")$("synthesisState").textContent="PAUSED";
-      if(name==="resume")$("synthesisState").textContent="SPEAKING";
-    });
-  }
-  try{speechSynthesis.speak(utterance);notice("synthNotice","Speech synthesis requested.","success");}
-  catch(e){notice("synthNotice",errText(e),"error");log("synthEvents","ERROR",errText(e),true);}
-});
-$("pauseSpeechBtn").addEventListener("click",()=>safe(()=>speechSynthesis.pause()));
-$("resumeSpeechBtn").addEventListener("click",()=>safe(()=>speechSynthesis.resume()));
-$("cancelSpeechBtn").addEventListener("click",()=>{
-  if("speechSynthesis" in window)speechSynthesis.cancel();
-  state.synthActive=false;$("synthesisState").textContent="IDLE";
-  log("synthEvents","STATE","Synthesis cancelled");
-});
+        <label class="field">
+          <span>Text to speak</span>
+          <textarea id="speakText" rows="7" placeholder="Type something for your browser to speak."></textarea>
+        </label>
 
-/* Export and cleanup */
-$("exportLog").addEventListener("click",()=>{
-  const all=[
-    "=== Browser Audio Lab event log ===",
-    ...state.logEntries.map(e=>`${e.time}\t${e.type}\t${e.message}`),
-    "\n=== Recognition events ===",
-    ...state.speechLogEntries.map(e=>`${e.time}\t${e.type}\t${e.message}`),
-    "\n=== Synthesis events ===",
-    ...state.synthLogEntries.map(e=>`${e.time}\t${e.type}\t${e.message}`),
-    "\n=== Track events ===",
-    ...state.trackLogEntries.map(e=>`${e.time}\t${e.type}\t${e.message}`)
-  ].join("\n");
-  downloadText(all,"browser-audio-lab-events.txt");
-});
-$("clearLog").addEventListener("click",()=>{
-  for(const [id,list] of [["eventLog",state.logEntries],["speechEvents",state.speechLogEntries],["synthEvents",state.synthLogEntries],["trackEvents",state.trackLogEntries]]){
-    list.length=0;$(id).replaceChildren();
-  }
-});
-$("releaseAll").addEventListener("click",async()=>{
-  if(state.recognition&&state.recognizing)stopRecognition(true);
-  if("speechSynthesis" in window)speechSynthesis.cancel();
-  state.synthActive=false;
-  $("synthesisState").textContent="IDLE";
-  if(state.recorder&&state.recorder.state!=="inactive"){
-    await new Promise(resolve=>{
-      const r=state.recorder;r.addEventListener("stop",resolve,{once:true});
-      try{r.stop();}catch{resolve();}
-    });
-  }
-  await stopMic();
-  log("eventLog","CLEANUP","All application-managed sessions stopped");
-});
-window.addEventListener("pagehide",()=>{
-  state.destroyed=true;
-  cancelAnimationFrame(state.animation);clearInterval(state.recordTimer);
-  if(state.recognition&&state.recognizing)safe(()=>state.recognition.abort());
-  if("speechSynthesis" in window)speechSynthesis.cancel();
-  if(state.stream)state.stream.getTracks().forEach(t=>t.stop());
-  if(state.context&&state.context.state!=="closed")safe(()=>state.context.close());
-  if(state.recordingUrl)URL.revokeObjectURL(state.recordingUrl);
-  if(navigator.mediaDevices?.removeEventListener&&state.deviceChangeHandler)
-    navigator.mediaDevices.removeEventListener("devicechange",state.deviceChangeHandler);
-});
-window.addEventListener("online",()=>{log("eventLog","NETWORK","Browser reports online");runDiagnostics();});
-window.addEventListener("offline",()=>{log("eventLog","NETWORK","Browser reports offline");runDiagnostics();});
-document.addEventListener("visibilitychange",()=>log("eventLog","PAGE","Visibility: "+document.visibilityState));
+        <label class="field">
+          <span>Voice</span>
+          <select id="voiceSelect">
+            <option value="">Browser default voice</option>
+          </select>
+        </label>
 
-/* Initial setup */
-runDiagnostics();
-log("eventLog","SYSTEM","Browser Audio Lab initialized");
-log("speechEvents","SYSTEM",Recognition?"Speech recognition interface detected":"Speech recognition interface unavailable");
-log("synthEvents","SYSTEM","Speech synthesis: "+("speechSynthesis" in window?"detected":"unavailable"));
-enumerateDevices();
-updateRecognitionButtons();
-$("durationValue").textContent="—";
-</script>
+        <div class="control-grid">
+          <label class="field">
+            <span>Rate: <output id="rateOutput">1.0</output></span>
+            <input id="speechRate" type="range" min="0.5" max="2" step="0.1" value="1">
+          </label>
+          <label class="field">
+            <span>Pitch: <output id="pitchOutput">1.0</output></span>
+            <input id="speechPitch" type="range" min="0" max="2" step="0.1" value="1">
+          </label>
+        </div>
+
+        <div class="button-row">
+          <button id="speakButton" class="button primary">Speak</button>
+          <button id="cancelSpeech" class="button">Stop speaking</button>
+        </div>
+        <p id="synthesisMessage" class="help" aria-live="polite">Ready.</p>
+      </article>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">07 / DIAGNOSTICS</p>
+          <h2>Browser capabilities</h2>
+        </div>
+        <button id="runDiagnostics" class="button">Run checks</button>
+      </div>
+      <div id="diagnostics" class="diagnostics" aria-live="polite">
+        Diagnostics have not run yet.
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">08 / EVENT LOG</p>
+          <h2>What happened?</h2>
+        </div>
+        <div class="button-row compact">
+          <button id="exportLog" class="button">Export log</button>
+          <button id="clearLog" class="button">Clear</button>
+        </div>
+      </div>
+      <ol id="eventLog" class="event-log"></ol>
+    </section>
+
+    <footer class="footer">
+      <span>Audio Lab · Browser-native tools</span>
+      <span>No account or API key required</span>
+    </footer>
+  </main>
 </body>
 </html>
